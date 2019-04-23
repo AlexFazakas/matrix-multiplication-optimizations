@@ -1,0 +1,83 @@
+Fazakas Alexandru
+335CA
+
+1. Detalii de implementare
+
+a. BLAS
+
+Abordarea este destul de straight forward. Am folosit functia dgemm
+atat pentru inmultirea cat si pentru adunarea matricilor, folosind pe post
+de scalari doua variabile cu valorile 1, respectiv 0. Am inceput prin a
+calcula produsele de transpus(A/B) * A/B, am obtinut suma, am zeroizat
+sub diagonala principala (ceva ce am incercat sa fac cu ajutorul bibliotecii
+insa nu am reusit folosind CBLAS_UPLO) asa ca am facut asta manual.
+La final, am ridicat la patrat matricea inmultind-o cu ea insasi.
+
+b. Neoptim
+
+Abordarea este cea mai intuitiva: explicitarea formulei de inmultire a
+doua matrice. Am impartit implementarea in cateva functii pentru
+adunarea, transpunerea, inmultirea si zeroizarea sub diagonala principala
+a unei/unor matrice.
+
+c. Optim
+
+Am incercat mai multe metode, insa cea care a dat cele mai bune rezultate
+(si care a functionat corect, for that matter) este cea in care am ales
+cea mai buna ordine a loop-urilor for i-k-j. Am observat ca asta era cea
+mai rapida luand in considerare rezultatele de la laborator si comparand-o
+cu alte optiuni precum BMM sau alte ordinii ale loop-urilor.
+Ce face ca aceasta optiune sa fie mai rapida decat cea anterioara:
+parcurgerea mai eficienta a matricilor si dereferentierea pointerilor
+pe care ii folosim. (din pacate pe aceasta versiune nu cred ca putem folosi
+vreun register cu exceptia lui i, j, k cu care iteram prin matrice).
+
+d. Optim cu flags
+
+Pentru acest punct am compilat atat pe gcc cat si pe icc cu flag-ul O3
+si am comparat rezultatele cu cele anterioare.
+
+2. Comparatii icc vs gcc
+
+Overall, nu pare sa fie o optiune complet mai buna decat cealalta.
+In cazul blas si neoptimizat, rezultatele par sa fie similare, cu icc
+miscandu-se doar putin mai incet decat gcc. In schimb, pe varianta
+optimizata de mine, timpii sunt considerabili mai buni folosind gcc si nu
+icc (o diferenta procentuala de 35% vs 65% roughly). Optimizand cu
+flag-ul -O3 ne da, in schimb, o performanta mai buna pe icc (aproximativ
+57% vs 43%).
+In medie, gcc da per total o performanta mai buna decat icc cu aproximativ
+5-7%.
+
+3. Comparatii blas vs neopt vs opt_m vs opt_f
+
+Cea mai buna metoda pare sa fie de departe (pe ambele copmilatoare) cea
+cu blas la un timp de 4.1-4.2 secunde (pe testul N = 1600).
+A 2-a cea mai rapida este optimizarea folosind flag-ul O3 cu timpi de
+aproximativ 25, respectiv 35 de secunde pe gcc, respectiv icc.
+Varianta optimizata de mine obtine timpi in jur de 57-58 de secunde pe gcc,
+iar pe icc 97-99 secunde (o diferenta destul de mare intre compilatoare aici).
+Varianta naiva a implementarii ajunge undeva la 170 de secunde pe ambele
+compilatoare.
+
+4. Cum am obtinut datele
+
+Rularea comenzii urmatoare pe teste de cateva ori. :)
+`make clean && make && ./tema2_blas input && ./compare ./out1 /export/asc/tema2/out1 0.001 && ./tema2_neopt input && ./compare ./out1 /export/asc/tema2/out1 0.001 && ./tema2_opt_m input && ./compare ./out1 /export/asc/tema2/out1 0.001 && ./tema2_opt_f input && ./compare ./out1 /export/asc/tema2/out1 0.001 && make clean && make -f Makefile.icc`
+Acestea pot fi vizualizate aici: 
+https://docs.google.com/spreadsheets/d/1aKa18qNA8AoiorYXRggquKXjGmx1aLLf2DClvlP8Jkw/edit?usp=sharing
+(impreuna cu graficul atasat)
+
+5. Dificultati in implementare
+
+Partea cea mai dificila a fost sa gasesc (si imi pare rau ca nu am reusit
+sa vin cu una mai buna) o metoda de optimizare cat mai eficienta
+si sa face testare adecvata pentru toate pe care le am, incluzand
+atasarea a catorva grafice si date sugestive. :)
+
+6. Feedback & timp alocat
+
+O tema nu super interesanta, insa foarte strans legata de ce s-a
+facut la curs si laborator, ceea ce o face adecvata imho. :)
+
+Am alocat temei aproximativ 12 ore de lucru.
